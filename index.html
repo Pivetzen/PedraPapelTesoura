@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🕹 Pedra Papel e Tesoura 🕹</title>
+    <title>Jokenpô Pro - Solo & PvP</title>
     <style>
         :root {
             --primary: #00d2ff;
@@ -170,3 +170,164 @@
             border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="name-modal">
+        <div class="modal-content">
+            <h2 id="modal-title">Configurar Jogadores</h2>
+            <input type="text" id="p1-input" placeholder="Nome do Jogador 1">
+            <input type="text" id="p2-input" placeholder="Nome do Jogador 2">
+            <button onclick="confirmNames()">COMEÇAR JOGO</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="mode-selector">
+            <button id="btn-cpu" class="mode-btn active" onclick="changeMode('CPU')">💻 vs CPU</button>
+            <button id="btn-pvp" class="mode-btn" onclick="changeMode('PVP')">👥 Local PvP</button>
+        </div>
+
+        <div class="score">
+            <div><span id="p1-name-label">Jogador 1</span>: <span id="p1-score">0</span></div>
+            <div class="badge">VS</div>
+            <div><span id="p2-name-label">CPU</span>: <span id="p2-score">0</span></div>
+        </div>
+
+        <div class="battle-area">
+            <div>
+                <span class="label" id="p1-label-battle">P1</span>
+                <span id="p1-view" class="symbol">❔</span>
+            </div>
+            <div style="font-size: 1.5rem; opacity: 0.3;">X</div>
+            <div>
+                <span class="label" id="p2-label-battle">CPU</span>
+                <span id="p2-view" class="symbol">❔</span>
+            </div>
+        </div>
+
+        <div id="turn-indicator">Aguardando...</div>
+
+        <div class="choices" id="input-area">
+            <button onclick="handleChoice('pedra')">✊</button>
+            <button onclick="handleChoice('papel')">✋</button>
+            <button onclick="handleChoice('tesoura')">✌️</button>
+        </div>
+
+        <button id="btn-action" onclick="revealBattle()">REVELAR JOGADA!</button>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        let mode = 'CPU';
+        let p1Name = "Jogador 1";
+        let p2Name = "CPU";
+        let p1Score = 0;
+        let p2Score = 0;
+        let p1Choice = null;
+        let p2Choice = null;
+
+        const emojis = { pedra: '✊', papel: '✋', tesoura: '✌️', lock: '🔒', unknown: '❔' };
+
+        // Inicia o processo de nomes ao abrir
+        window.onload = () => changeMode('CPU');
+
+        function changeMode(newMode) {
+            mode = newMode;
+            // Atualiza botões
+            document.getElementById('btn-cpu').classList.toggle('active', mode === 'CPU');
+            document.getElementById('btn-pvp').classList.toggle('active', mode === 'PVP');
+            
+            // Configura o Modal
+            document.getElementById('modal-title').innerText = mode === 'CPU' ? 'Qual seu nome?' : 'Nomes dos Jogadores';
+            document.getElementById('p2-input').style.display = mode === 'CPU' ? 'none' : 'block';
+            document.getElementById('name-modal').style.display = 'flex';
+            
+            resetGame(true);
+        }
+
+        function confirmNames() {
+            p1Name = document.getElementById('p1-input').value.trim() || "Jogador 1";
+            p2Name = mode === 'CPU' ? "CPU" : (document.getElementById('p2-input').value.trim() || "Jogador 2");
+
+            document.getElementById('p1-name-label').innerText = p1Name;
+            document.getElementById('p2-name-label').innerText = p2Name;
+            document.getElementById('p1-label-battle').innerText = p1Name;
+            document.getElementById('p2-label-battle').innerText = p2Name;
+
+            document.getElementById('name-modal').style.display = 'none';
+            document.getElementById('turn-indicator').innerText = `Sua vez, ${p1Name}!`;
+        }
+
+        function handleChoice(choice) {
+            if (mode === 'CPU') {
+                p1Choice = choice;
+                p2Choice = ['pedra', 'papel', 'tesoura'][Math.floor(Math.random() * 3)];
+                revealBattle();
+            } else {
+                if (!p1Choice) {
+                    p1Choice = choice;
+                    document.getElementById('p1-view').innerText = emojis.lock;
+                    document.getElementById('turn-indicator').innerText = `Agora é a vez de ${p2Name}!`;
+                } else if (!p2Choice) {
+                    p2Choice = choice;
+                    document.getElementById('p2-view').innerText = emojis.lock;
+                    document.getElementById('input-area').style.display = 'none';
+                    document.getElementById('btn-action').style.display = 'inline-block';
+                    document.getElementById('turn-indicator').innerText = "Escolhas feitas! Clique abaixo.";
+                }
+            }
+        }
+
+        function revealBattle() {
+            document.getElementById('p1-view').innerText = emojis[p1Choice];
+            document.getElementById('p2-view').innerText = emojis[p2Choice];
+            
+            const result = determineWinner(p1Choice, p2Choice);
+            const resDiv = document.getElementById('result');
+            resDiv.innerText = result.msg;
+            resDiv.style.color = result.color;
+
+            if (result.winner === 1) p1Score++;
+            if (result.winner === 2) p2Score++;
+
+            document.getElementById('p1-score').innerText = p1Score;
+            document.getElementById('p2-score').innerText = p2Score;
+
+            document.getElementById('input-area').style.display = 'none';
+            document.getElementById('btn-action').style.display = 'inline-block';
+            document.getElementById('btn-action').innerText = "PRÓXIMA RODADA";
+            document.getElementById('btn-action').onclick = () => resetGame(false);
+        }
+
+        function determineWinner(p1, p2) {
+            if (p1 === p2) return { msg: "EMPATE! 🤝", color: '#ffa502', winner: 0 };
+            const wins = { pedra: 'tesoura', papel: 'pedra', tesoura: 'papel' };
+            
+            if (wins[p1] === p2) {
+                return { msg: `${p1Name.toUpperCase()} VENCEU! 🎉`, color: '#2ed573', winner: 1 };
+            } else {
+                return { msg: `${p2Name.toUpperCase()} VENCEU! ${mode === 'CPU' ? '💀' : '🎉'}`, color: '#ff4757', winner: 2 };
+            }
+        }
+
+        function resetGame(fullReset) {
+            if(fullReset) { p1Score = 0; p2Score = 0; }
+            p1Choice = null; p2Choice = null;
+            document.getElementById('p1-score').innerText = p1Score;
+            document.getElementById('p2-score').innerText = p2Score;
+            document.getElementById('p1-view').innerText = emojis.unknown;
+            document.getElementById('p2-view').innerText = emojis.unknown;
+            document.getElementById('result').innerText = "";
+            document.getElementById('turn-indicator').innerText = `Sua vez, ${p1Name}!`;
+            document.getElementById('input-area').style.display = 'flex';
+            document.getElementById('btn-action').style.display = 'none';
+            document.getElementById('btn-action').innerText = "REVELAR JOGADA!";
+            document.getElementById('btn-action').onclick = revealBattle;
+        }
+    </script>
+</body>
+</html>
