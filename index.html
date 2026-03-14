@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🕹 Pedra Papel e Tesoura 🕹</title>
+    <title>Jokenpô Pro - Solo & PvP</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -13,168 +13,229 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
         }
 
         .container {
             text-align: center;
             background: rgba(255, 255, 255, 0.1);
-            padding: 2.5rem;
+            padding: 2rem;
             border-radius: 20px;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-            backdrop-filter: blur(4px);
+            backdrop-filter: blur(8px);
             border: 1px solid rgba(255, 255, 255, 0.18);
             width: 90%;
-            max-width: 450px;
+            max-width: 500px;
+        }
+
+        .mode-selector {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .mode-btn {
+            background: #4b4b6b;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .mode-btn.active {
+            background: #00d2ff;
+            font-weight: bold;
         }
 
         .score {
             display: flex;
             justify-content: center;
-            gap: 40px;
-            font-size: 1.2rem;
+            gap: 30px;
+            font-size: 1.1rem;
             margin-bottom: 20px;
         }
 
-        .badge {
-            background: #ff4757;
-            padding: 5px 15px;
-            border-radius: 10px;
-            font-weight: bold;
-        }
-
-        /* Área de Comparação Visual */
         .battle-area {
             display: flex;
             justify-content: space-around;
             align-items: center;
             margin: 20px 0;
-            padding: 15px;
             background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
             border-radius: 15px;
-            min-height: 100px;
         }
 
-        .battle-box {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .symbol {
-            font-size: 3.5rem;
-            display: block;
-        }
-
-        .label {
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            opacity: 0.7;
-        }
+        .symbol { font-size: 3.5rem; display: block; margin-top: 5px; }
+        .label { font-size: 0.8rem; text-transform: uppercase; opacity: 0.7; }
 
         .choices {
             display: flex;
             justify-content: center;
-            gap: 20px;
-            margin: 20px 0;
+            gap: 15px;
+            margin-top: 20px;
         }
 
-        button {
+        .choices button {
             font-size: 2.5rem;
             padding: 15px;
             border: none;
             border-radius: 50%;
             cursor: pointer;
             background: white;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        button:hover {
-            transform: scale(1.2);
-            background: #00d2ff;
-        }
+        .choices button:hover { transform: scale(1.1); background: #eee; }
 
-        #result {
-            font-size: 1.4rem;
+        #btn-action {
+            margin-top: 25px;
+            padding: 12px 40px;
+            font-size: 1.2rem;
+            border-radius: 30px;
+            border: none;
+            background: #2ed573;
+            color: white;
+            cursor: pointer;
             font-weight: bold;
-            margin-top: 15px;
+            display: none; /* Escondido por padrão */
         }
+
+        #turn-indicator {
+            margin-top: 10px;
+            font-weight: bold;
+            color: #ffa502;
+        }
+
+        #result { font-size: 1.4rem; font-weight: bold; margin-top: 15px; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>Jokenpô</h1>
-        
+        <div class="mode-selector">
+            <button class="mode-btn active" onclick="setMode('CPU')">vs CPU</button>
+            <button class="mode-btn" onclick="setMode('PVP')">Local PvP</button>
+        </div>
+
         <div class="score">
-            <div>Você: <span id="player-score">0</span></div>
-            <div class="badge">VS</div>
-            <div>CPU: <span id="cpu-score">0</span></div>
+            <div id="p1-label">Jogador 1: <span id="p1-score">0</span></div>
+            <div id="p2-label">CPU: <span id="p2-score">0</span></div>
         </div>
 
         <div class="battle-area">
-            <div class="battle-box">
-                <span class="label">Você</span>
-                <span id="player-view" class="symbol">❔</span>
+            <div>
+                <span class="label">P1</span>
+                <span id="p1-view" class="symbol">❔</span>
             </div>
-            <div style="font-size: 2rem;">⚡</div>
-            <div class="battle-box">
-                <span class="label">CPU</span>
-                <span id="cpu-view" class="symbol">❔</span>
+            <div style="font-size: 1.5rem;">VS</div>
+            <div>
+                <span class="label" id="p2-name">CPU</span>
+                <span id="p2-view" class="symbol">❔</span>
             </div>
         </div>
 
-        <div class="choices">
-            <button onclick="play('pedra')">✊</button>
-            <button onclick="play('papel')">✋</button>
-            <button onclick="play('tesoura')">✌️</button>
+        <div id="turn-indicator">Sua vez, Jogador 1!</div>
+
+        <div class="choices" id="input-area">
+            <button onclick="handleChoice('pedra')">✊</button>
+            <button onclick="handleChoice('papel')">✋</button>
+            <button onclick="handleChoice('tesoura')">✌️</button>
         </div>
 
-        <div id="result">Escolha sua jogada!</div>
+        <button id="btn-action" onclick="revealBattle()">JOGAR!</button>
+
+        <div id="result"></div>
     </div>
 
     <script>
-        let pScore = 0;
-        let cScore = 0;
+        let mode = 'CPU'; // 'CPU' ou 'PVP'
+        let p1Score = 0;
+        let p2Score = 0;
+        
+        let p1Choice = null;
+        let p2Choice = null;
 
-        function play(playerChoice) {
-            const options = ['pedra', 'papel', 'tesoura'];
-            const cpuChoice = options[Math.floor(Math.random() * 3)];
-            
-            // Mapeamento de emojis para visualização
-            const emojis = { 
-                pedra: '✊', 
-                papel: '✋', 
-                tesoura: '✌️' 
-            };
+        const emojis = { pedra: '✊', papel: '✋', tesoura: '✌️', hidden: '🔒' };
 
-            // Atualiza os símbolos na área de batalha
-            document.getElementById('player-view').innerText = emojis[playerChoice];
-            document.getElementById('cpu-view').innerText = emojis[cpuChoice];
+        function setMode(newMode) {
+            mode = newMode;
+            resetGame();
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('p2-name').innerText = mode === 'CPU' ? 'CPU' : 'P2';
+            document.getElementById('p2-label').innerHTML = `${mode === 'CPU' ? 'CPU' : 'Jogador 2'}: <span id="p2-score">0</span>`;
+        }
 
-            const resultDisplay = document.getElementById('result');
-
-            if (playerChoice === cpuChoice) {
-                resultDisplay.innerHTML = "EMPATE! 🤝";
-                resultDisplay.style.color = "#ffa502";
-            } else if (
-                (playerChoice === 'pedra' && cpuChoice === 'tesoura') ||
-                (playerChoice === 'papel' && cpuChoice === 'pedra') ||
-                (playerChoice === 'tesoura' && cpuChoice === 'papel')
-            ) {
-                resultDisplay.innerHTML = "GANHOU! 🎉";
-                resultDisplay.style.color = "#2ed573";
-                pScore++;
+        function handleChoice(choice) {
+            if (mode === 'CPU') {
+                p1Choice = choice;
+                p2Choice = ['pedra', 'papel', 'tesoura'][Math.floor(Math.random() * 3)];
+                revealBattle();
             } else {
-                resultDisplay.innerHTML = "PERDEU! 💀";
-                resultDisplay.style.color = "#ff4757";
-                cScore++;
+                // Lógica PVP
+                if (!p1Choice) {
+                    p1Choice = choice;
+                    document.getElementById('p1-view').innerText = emojis.hidden;
+                    document.getElementById('turn-indicator').innerText = "Agora sua vez, Jogador 2!";
+                } else if (!p2Choice) {
+                    p2Choice = choice;
+                    document.getElementById('p2-view').innerText = emojis.hidden;
+                    document.getElementById('input-area').style.display = 'none';
+                    document.getElementById('btn-action').style.display = 'inline-block';
+                    document.getElementById('turn-indicator').innerText = "Ambos escolheram!";
+                }
             }
+        }
 
-            document.getElementById('player-score').innerText = pScore;
-            document.getElementById('cpu-score').innerText = cScore;
+        function revealBattle() {
+            document.getElementById('p1-view').innerText = emojis[p1Choice];
+            document.getElementById('p2-view').innerText = emojis[p2Choice];
+            
+            const result = determineWinner(p1Choice, p2Choice);
+            const display = document.getElementById('result');
+            display.innerText = result.msg;
+            display.style.color = result.color;
+
+            if (result.winner === 1) p1Score++;
+            if (result.winner === 2) p2Score++;
+
+            updateScores();
+            
+            // Preparar para o próximo round se for PVP
+            if (mode === 'PVP') {
+                document.getElementById('btn-action').innerText = "PRÓXIMO ROUND";
+                document.getElementById('btn-action').onclick = resetGame;
+            }
+        }
+
+        function determineWinner(p1, p2) {
+            if (p1 === p2) return { msg: "EMPATE! 🤝", color: "#ffa502", winner: 0 };
+            if ((p1 === 'pedra' && p2 === 'tesoura') || (p1 === 'papel' && p2 === 'pedra') || (p1 === 'tesoura' && p2 === 'papel')) {
+                return { msg: mode === 'CPU' ? "VOCÊ VENCEU! 🎉" : "JOGADOR 1 VENCEU! 🎉", color: "#2ed573", winner: 1 };
+            }
+            return { msg: mode === 'CPU' ? "CPU VENCEU! 💀" : "JOGADOR 2 VENCEU! 🎉", color: "#ff4757", winner: 2 };
+        }
+
+        function updateScores() {
+            document.getElementById('p1-score').innerText = p1Score;
+            document.getElementById('p2-score').innerText = p2Score;
+        }
+
+        function resetGame() {
+            p1Choice = null;
+            p2Choice = null;
+            document.getElementById('p1-view').innerText = "❔";
+            document.getElementById('p2-view').innerText = "❔";
+            document.getElementById('result').innerText = "";
+            document.getElementById('turn-indicator').innerText = "Sua vez, Jogador 1!";
+            document.getElementById('input-area').style.display = 'flex';
+            document.getElementById('btn-action').style.display = 'none';
+            document.getElementById('btn-action').innerText = "JOGAR!";
+            document.getElementById('btn-action').onclick = revealBattle;
         }
     </script>
 </body>
