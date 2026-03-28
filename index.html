@@ -341,7 +341,7 @@
         }
 
         function shareResult() {
-            const text = `🕹️ Acabei de jogar Pedra, Papel e Tesoura!\n\n🏆 Placar Atual:\n${p1Name}: ${p1Score} pts\n${p2Name}: ${p2Score} pts\n\nDesafio você a me vencer aqui: ${window.location.href}`;
+            const text = `🕹️ *Acabei de jogar Pedra, Papel e Tesoura!*\n\n🏆 *Placar Atual:*\n*${p1Name}*: ${p1Score} pts\n*${p2Name}*: ${p2Score} pts\n\nDesafio você a me vencer aqui: ${window.location.href}`;
             const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
             window.open(url, '_blank');
         }
