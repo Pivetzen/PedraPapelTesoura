@@ -220,6 +220,9 @@
         <button id="btn-action" onclick="revealBattle()">REVELAR JOGADA!</button>
 
         <div id="result"></div>
+        <button id="btn-share" onclick="shareResult()" style="display: none; margin: 10px auto; padding: 10px 20px; background: #25d366; color: white; border: none; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 0.9rem; align-items: center; gap: 8px;">
+            <span>Compartilhar no WhatsApp</span>
+        </button>
     </div> <div style="margin-top: 30px; width: 90%; max-width: 500px; text-align: center; background: rgba(255, 255, 255, 0.05); border-radius: 15px; padding: 15px; border: 1px solid rgba(255, 255, 255, 0.1);">
         <p style="font-size: 0.7rem; opacity: 0.5; margin-bottom: 10px; text-transform: uppercase;">Publicidade</p>
         
@@ -307,6 +310,7 @@
             document.getElementById('btn-action').style.display = 'inline-block';
             document.getElementById('btn-action').innerText = "PRÓXIMA RODADA";
             document.getElementById('btn-action').onclick = () => resetGame(false);
+            document.getElementById('btn-share').style.display = 'flex';
         }
 
         function determineWinner(p1, p2) {
@@ -333,7 +337,15 @@
             document.getElementById('btn-action').style.display = 'none';
             document.getElementById('btn-action').innerText = "REVELAR JOGADA!";
             document.getElementById('btn-action').onclick = revealBattle;
+            document.getElementById('btn-share').style.display = 'none';
         }
+
+        function shareResult() {
+            const text = `🕹️ Acabei de jogar Pedra, Papel e Tesoura!\n\n🏆 Placar Atual:\n${p1Name}: ${p1Score} pts\n${p2Name}: ${p2Score} pts\n\nDesafio você a me vencer aqui: ${window.location.href}`;
+            const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank');
+        }
+        
     </script>
 </body>
 </html>
