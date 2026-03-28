@@ -224,10 +224,21 @@
             <span>Compartilhar no WhatsApp</span>
         </button>
     </div>
-    <div style="margin: 30px auto; width: 320px; display: flex; flex-direction: column; align-items: center;">
+    <div id="ad-container" style="margin: 30px auto; width: 320px; display: flex; flex-direction: column; align-items: center;">
         <p style="font-size: 0.6rem; opacity: 0.4; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px;">Publicidade</p>
+        <div id="ad-slot">
+            
+        </div>
+    </div>
+
+<script>
+    function refreshAd() {
+        const adSlot = document.getElementById('ad-slot');
+        adSlot.innerHTML = ''; // Limpa o anúncio anterior
         
-        <script type="text/javascript">
+        const scriptConfig = document.createElement('script');
+        scriptConfig.type = 'text/javascript';
+        scriptConfig.text = `
             atOptions = {
                 'key' : 'f95477b41aad412b789767be6416723b',
                 'format' : 'iframe',
@@ -235,8 +246,22 @@
                 'width' : 320,
                 'params' : {}
             };
-        </script>
-        <script type="text/javascript" src="//www.highperformanceformat.com/f95477b41aad412b789767be6416723b/invoke.js"></script>
+        `;
+        
+        const scriptInvoke = document.createElement('script');
+        scriptInvoke.type = 'text/javascript';
+        scriptInvoke.src = '//www.highperformanceformat.com/f95477b41aad412b789767be6416723b/invoke.js';
+        
+        adSlot.appendChild(scriptConfig);
+        adSlot.appendChild(scriptInvoke);
+    }
+
+    // Carrega o primeiro anúncio
+    refreshAd();
+
+    // Atualiza o anúncio a cada 60 segundos (60000 milissegundos)
+    setInterval(refreshAd, 60000);
+</script>
     </div>
 
     <script>
@@ -247,6 +272,7 @@
         let p2Score = 0;
         let p1Choice = null;
         let p2Choice = null;
+        let winStreak = 0;
 
         const emojis = { pedra: '✊', papel: '✋', tesoura: '✌️', lock: '🔒', unknown: '❔' };
 
@@ -323,12 +349,18 @@
         }
 
         function determineWinner(p1, p2) {
-            if (p1 === p2) return { msg: "EMPATE! 🤝", color: '#ffa502', winner: 0 };
+            if (p1 === p2) {
+                winStreak = 0; // Opcional: zerar no empate ou manter? Geralmente zera.
+                return { msg: "EMPATE! 🤝", color: '#ffa502', winner: 0 };
+            }
             const wins = { pedra: 'tesoura', papel: 'pedra', tesoura: 'papel' };
             
             if (wins[p1] === p2) {
+                winStreak++; // Aumenta a sequência
+                let streakMsg = winStreak > 1 ? ` (${winStreak} VITÓRIAS SEGUIDAS!)` : "";
                 return { msg: `${p1Name.toUpperCase()} VENCEU! 🎉`, color: '#2ed573', winner: 1 };
             } else {
+                winStreak = 0; // Perdeu, zera a sequência
                 return { msg: `${p2Name.toUpperCase()} VENCEU! ${mode === 'CPU' ? '💀' : '🎉'}`, color: '#ff4757', winner: 2 };
             }
         }
@@ -350,7 +382,7 @@
         }
 
         function shareResult() {
-            const text = `🕹️ *Acabei de jogar Pedra, Papel e Tesoura!*\n\n🏆 *Placar Atual:*\n*${p1Name}*: ${p1Score} pts\n*${p2Name}*: ${p2Score} pts\n\nDesafio você a me vencer aqui: ${window.location.href}`;
+            const text = `🕹️ *Acabei de jogar Pedra, Papel e Tesoura!*\n\n🔥 Minha sequência de vitórias: *${winStreak}*\n🏆 Placar: ${p1Name} ${p1Score} x ${p2Score} ${p2Name}\n\nDesafio você a me vencer aqui: ${window.location.href}`;
             const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
             window.open(url, '_blank');
         }
